@@ -6,6 +6,7 @@
       // Fix for external scripts trying to override fetch in environments where it's getter-only
       try {
         const originalFetch = window.fetch;
+        window.__originalFetch = originalFetch;
         Object.defineProperty(window, 'fetch', {
           configurable: true,
           enumerable: true,

